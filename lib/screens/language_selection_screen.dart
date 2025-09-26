@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../main.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/glass_container.dart';
+// Removed glass_container import - using custom containers instead
 import '../core/constants/app_constants.dart';
 import '../l10n/app_localizations.dart';
 import 'birth_info_screen.dart';
@@ -101,27 +101,38 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       final language = AppConstants.supportedLanguages[index];
                       final isSelected = selectedLanguage == language['code'];
                       
-                      return GlassContainer(
+                      return InkWell(
                         onTap: () => _setLanguage(language['code']!),
-                        isSelected: isSelected,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              language['flag']!,
-                              style: const TextStyle(fontSize: 32),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white.withOpacity(isSelected ? 0.2 : 0.1),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(isSelected ? 0.5 : 0.2),
+                              width: isSelected ? 2 : 1,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              language['name']!,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white70,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                fontSize: 14,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                language['flag']!,
+                                style: const TextStyle(fontSize: 32),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                language['name']!,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.white : Colors.white70,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
                       ).animate().scale(
                         delay: Duration(milliseconds: 50 * index),

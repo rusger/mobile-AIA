@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:country_state_city_picker/country_state_city_picker.dart';
 import '../widgets/gradient_background.dart';
-import '../widgets/glass_container.dart';
 import '../widgets/animated_button.dart';
 import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
@@ -185,7 +184,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
   }
   
   Widget _buildDatePage(AppLocalizations l10n) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -204,37 +203,52 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
             ),
           ),
           const SizedBox(height: 48),
-          GlassContainer(
+          InkWell(
             onTap: _selectDate,
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.date_range,
-                  color: Colors.purple.shade300,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  selectedDate != null
-                      ? DateFormat('MMMM d, yyyy').format(selectedDate!)
-                      : l10n.selectDate,
-                  style: TextStyle(
-                    color: selectedDate != null ? Colors.white : Colors.white70,
-                    fontSize: 18,
-                    fontWeight: selectedDate != null ? FontWeight.bold : FontWeight.normal,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white.withOpacity(0.1),
+                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 1,
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.date_range,
+                    color: Colors.purple.shade300,
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    selectedDate != null
+                        ? DateFormat('MMMM d, yyyy').format(selectedDate!)
+                        : l10n.selectDate,
+                    style: TextStyle(
+                      color: selectedDate != null ? Colors.white : Colors.white70,
+                      fontSize: 18,
+                      fontWeight: selectedDate != null ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
-      ).animate().fadeIn(duration: 500.ms),
-    );
+      ),
+    ).animate().fadeIn(duration: 500.ms);
   }
   
   Widget _buildTimePage(AppLocalizations l10n) {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -253,33 +267,48 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
             ),
           ),
           const SizedBox(height: 48),
-          GlassContainer(
+          InkWell(
             onTap: _selectTime,
-            padding: const EdgeInsets.all(24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.schedule,
-                  color: Colors.purple.shade300,
-                ),
-                const SizedBox(width: 16),
-                Text(
-                  selectedTime != null
-                      ? selectedTime!.format(context)
-                      : l10n.selectTime,
-                  style: TextStyle(
-                    color: selectedTime != null ? Colors.white : Colors.white70,
-                    fontSize: 18,
-                    fontWeight: selectedTime != null ? FontWeight.bold : FontWeight.normal,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                color: Colors.white.withOpacity(0.1),
+                border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 1,
                   ),
-                ),
-              ],
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.schedule,
+                    color: Colors.purple.shade300,
+                  ),
+                  const SizedBox(width: 16),
+                  Text(
+                    selectedTime != null
+                        ? selectedTime!.format(context)
+                        : l10n.selectTime,
+                    style: TextStyle(
+                      color: selectedTime != null ? Colors.white : Colors.white70,
+                      fontSize: 18,
+                      fontWeight: selectedTime != null ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
-      ).animate().fadeIn(duration: 500.ms),
-    );
+      ),
+    ).animate().fadeIn(duration: 500.ms);
   }
   
   Widget _buildLocationPage(AppLocalizations l10n) {
@@ -303,8 +332,13 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
           ),
           const SizedBox(height: 48),
           
-          GlassContainer(
+          Container(
             padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withOpacity(0.1),
+              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            ),
             child: TextField(
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
@@ -328,7 +362,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                 HapticFeedback.mediumImpact();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Processing: $selectedDate, $selectedTime, $cityValue, $stateValue, $countryValue'),
+                    content: Text('Processing: $selectedDate, $selectedTime, $cityValue'),
                     backgroundColor: Colors.purple.shade700,
                   ),
                 );
@@ -336,7 +370,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
               text: l10n.submit,
             ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
         ],
-      ).animate().fadeIn(duration: 500.ms),
-    );
+      ),
+    ).animate().fadeIn(duration: 500.ms);
   }
 }
