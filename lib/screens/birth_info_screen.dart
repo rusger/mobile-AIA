@@ -7,6 +7,9 @@ import '../widgets/gradient_background.dart';
 import '../widgets/animated_button.dart';
 import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class BirthInfoScreen extends StatefulWidget {
   const BirthInfoScreen({super.key});
@@ -25,6 +28,65 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
   final PageController _pageController = PageController();
   int currentPage = 0;
   
+  final TextEditingController _cityController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  Timer? _debounce;
+  bool _isSearching = false;
+  double? selectedLatitude;
+  double? selectedLongitude;
+
+  Future<void> _searchLocation(String query) async {
+    if (query.length < 3) {
+      setState(() {
+        _searchResults = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=5'),
+        headers: {'User-Agent': 'AIAstrologApp/1.0'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          _searchResults = data.map((item) => {
+            'display_name': item['display_name'],
+            'lat': double.parse(item['lat']),
+            'lon': double.parse(item['lon']),
+          }).toList();
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isSearching = false;
+      });
+      print('Error searching location: $e');
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchLocation(value);
+    });
+  }
+
+  @override
+  void dispose() {
+    _cityController.dispose();
+    _pageController.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   Future<void> _selectDate() async {
     HapticFeedback.selectionClick();
     final DateTime? picked = await showDatePicker(
@@ -315,7 +377,6 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.location_on,
@@ -339,31 +400,126 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
               color: Colors.white.withOpacity(0.1),
               border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             ),
-            child: TextField(
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: l10n.searchCity,
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: Icon(Icons.search, color: Colors.purple.shade300),
-                border: InputBorder.none,
-              ),
-              onChanged: (value) {
-                setState(() {
-                  cityValue = value;
-                });
-              },
+            child: Column(
+              children: [
+                TextField(
+                  controller: _cityController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Enter city name (e.g., Paris, New York)',
+                    hintStyle: const TextStyle(color: Colors.white54),
+                    prefixIcon: Icon(Icons.search, color: Colors.purple.shade300),
+                    suffixIcon: _isSearching 
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                            ),
+                          ),
+                        )
+                      : null,
+                    border: InputBorder.none,
+                  ),
+                  onChanged: _onSearchChanged,
+                ),
+              ],
             ),
           ),
           
-          const SizedBox(height: 32),
+          if (_searchResults.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              constraints: const BoxConstraints(maxHeight: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.1),
+                border: Border.all(color: Colors.white.withOpacity(0.2)),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _searchResults.length,
+                separatorBuilder: (context, index) => Divider(
+                  color: Colors.white.withOpacity(0.1),
+                  height: 1,
+                ),
+                itemBuilder: (context, index) {
+                  final result = _searchResults[index];
+                  return ListTile(
+                    dense: true,
+                    title: Text(
+                      result['display_name'],
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        cityValue = result['display_name'];
+                        selectedLatitude = result['lat'];
+                        selectedLongitude = result['lon'];
+                        _cityController.text = result['display_name'].split(',')[0];
+                        _searchResults = [];
+                      });
+                      HapticFeedback.selectionClick();
+                    },
+                  );
+                },
+              ),
+            ),
+          
           if (cityValue != null && cityValue!.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.purple.withOpacity(0.1),
+                border: Border.all(color: Colors.purple.shade300.withOpacity(0.3)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green.shade300, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          cityValue!.split(',')[0],
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Coordinates: ${selectedLatitude?.toStringAsFixed(4)}, ${selectedLongitude?.toStringAsFixed(4)}',
+                    style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          
+          const SizedBox(height: 32),
+          
+          if (selectedDate != null && selectedTime != null && cityValue != null && cityValue!.isNotEmpty)
             AnimatedButton(
               onPressed: () {
                 HapticFeedback.mediumImpact();
+                // TODO: Save the data and navigate to next screen
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Processing: $selectedDate, $selectedTime, $cityValue'),
+                    content: Text(
+                      'Date: ${DateFormat('MMM d, yyyy').format(selectedDate!)}\n'
+                      'Time: ${selectedTime!.format(context)}\n'
+                      'Location: ${cityValue!.split(',')[0]}\n'
+                      'Coordinates: ${selectedLatitude?.toStringAsFixed(4)}, ${selectedLongitude?.toStringAsFixed(4)}',
+                    ),
                     backgroundColor: Colors.purple.shade700,
+                    duration: const Duration(seconds: 3),
                   ),
                 );
               },

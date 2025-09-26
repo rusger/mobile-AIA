@@ -45,10 +45,11 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_animate: ^4.5.0
   country_state_city_picker: ^1.2.8
-  # csc_picker: ^0.2.7  # Commented out due to compatibility issues
+  csc_picker: ^0.2.7
   timezone: ^0.9.4
   # flutter_native_splash: ^2.4.6  # Commented out, not needed yet
   flutter_svg: ^2.0.10
+  http: ^1.5.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
