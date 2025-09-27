@@ -7,6 +7,7 @@ import '../widgets/gradient_background.dart';
 import '../widgets/animated_button.dart';
 import '../l10n/app_localizations.dart';
 import '../models/user_profile.dart';
+import '../core/theme/color_schemes.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -211,7 +212,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(2),
                               color: index <= currentPage
-                                  ? Colors.purple.shade300
+                                  ? ColorSchemes.colors.primaryAccent
                                   : Colors.white24,
                             ),
                           ).animate(target: index <= currentPage ? 1 : 0).scaleX(
@@ -254,7 +255,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
           Icon(
             Icons.calendar_today,
             size: 80,
-            color: Colors.purple.shade300,
+            color: ColorSchemes.colors.primaryAccent,
           ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
           const SizedBox(height: 32),
           Text(
@@ -287,7 +288,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                 children: [
                   Icon(
                     Icons.date_range,
-                    color: Colors.purple.shade300,
+                    color: ColorSchemes.colors.primaryAccent,
                   ),
                   const SizedBox(width: 16),
                   Text(
@@ -318,7 +319,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
           Icon(
             Icons.access_time,
             size: 80,
-            color: Colors.purple.shade300,
+            color: ColorSchemes.colors.primaryAccent,
           ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
           const SizedBox(height: 32),
           Text(
@@ -351,7 +352,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                 children: [
                   Icon(
                     Icons.schedule,
-                    color: Colors.purple.shade300,
+                    color: ColorSchemes.colors.primaryAccent,
                   ),
                   const SizedBox(width: 16),
                   Text(
@@ -381,7 +382,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
           Icon(
             Icons.location_on,
             size: 80,
-            color: Colors.purple.shade300,
+            color: ColorSchemes.colors.primaryAccent,
           ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
           const SizedBox(height: 32),
           Text(
@@ -408,7 +409,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                   decoration: InputDecoration(
                     hintText: 'Enter city name (e.g., Paris, New York)',
                     hintStyle: const TextStyle(color: Colors.white54),
-                    prefixIcon: Icon(Icons.search, color: Colors.purple.shade300),
+                    prefixIcon: Icon(Icons.search, color: ColorSchemes.colors.primaryAccent),
                     suffixIcon: _isSearching 
                       ? const SizedBox(
                           width: 20,
@@ -478,7 +479,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 color: Colors.purple.withOpacity(0.1),
-                border: Border.all(color: Colors.purple.shade300.withOpacity(0.3)),
+                border: Border.all(color: ColorSchemes.colors.primaryAccent.withOpacity(0.3)),
               ),
               child: Column(
                 children: [
@@ -518,7 +519,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                       'Location: ${cityValue!.split(',')[0]}\n'
                       'Coordinates: ${selectedLatitude?.toStringAsFixed(4)}, ${selectedLongitude?.toStringAsFixed(4)}',
                     ),
-                    backgroundColor: Colors.purple.shade700,
+                    backgroundColor: ColorSchemes.colors.tertiaryAccent,
                     duration: const Duration(seconds: 3),
                   ),
                 );

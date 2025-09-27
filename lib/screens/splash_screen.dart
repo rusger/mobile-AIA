@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../widgets/gradient_background.dart';
 import '../core/constants/app_constants.dart';
+import '../core/theme/color_schemes.dart';
 import 'home_screen.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -59,8 +61,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: [
-                      Colors.purple.shade300,
-                      Colors.deepPurple.shade400,
+                      ColorSchemes.colors.primaryAccent,
+                      ColorSchemes.colors.secondaryAccent,
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,

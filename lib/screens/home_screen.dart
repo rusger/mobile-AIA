@@ -5,9 +5,22 @@ import '../widgets/gradient_background.dart';
 import '../widgets/animated_button.dart';
 import '../l10n/app_localizations.dart';
 import 'language_selection_screen.dart';
+import '../widgets/theme_selector.dart';
+import '../core/theme/color_schemes.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  void _changeTheme(AppColorScheme scheme) {
+    setState(() {
+      ColorSchemes.current = scheme;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +31,16 @@ class HomeScreen extends StatelessWidget {
         child: SafeArea(
           child: Stack(
             children: [
+              // Theme selector at the top
+              Positioned(
+                top: 60,
+                left: 0,
+                right: 0,
+                child: ThemeSelector(
+                  onThemeChanged: _changeTheme,
+                ),
+              ),
+              
               Positioned(
                 top: -50,
                 right: -50,
@@ -55,7 +78,7 @@ class HomeScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            Colors.purple.shade300.withOpacity(0.3),
+                            ColorSchemes.colors.primaryAccent.withOpacity(0.3),
                             Colors.deepPurple.shade400.withOpacity(0.3),
                           ],
                         ),
