@@ -28,6 +28,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
   
   final PageController _pageController = PageController();
   int currentPage = 0;
+  bool _isTimePickerOpened = false;
   
   @override
   void initState() {
@@ -36,6 +37,24 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (currentPage == 0 && selectedDate == null) {
         _selectDate();
+      }
+    });
+    
+    // Listen to page changes
+    _pageController.addListener(() {
+      final newPage = _pageController.page?.round() ?? 0;
+      if (newPage != currentPage) {
+        setState(() {
+          currentPage = newPage;
+        });
+        
+        // Open time picker when reaching time page for the first time
+        if (newPage == 1 && selectedTime == null && !_isTimePickerOpened && selectedDate != null) {
+          _isTimePickerOpened = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _selectTime();
+          });
+        }
       }
     });
   }
@@ -130,12 +149,9 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
         selectedDate = picked;
       });
       _nextPage();
-      // Automatically open time picker after date is selected
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted && currentPage == 1 && selectedTime == null) {
-          _selectTime();
-        }
-      });
+    } else if (selectedDate == null) {
+      // If user cancels and no date selected, go back
+      Navigator.pop(context);
     }
   }
   
@@ -164,18 +180,28 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
         selectedTime = picked;
       });
       _nextPage();
+    } else if (selectedTime == null) {
+      // If user cancels and no time selected, go back
+      _previousPage();
     }
   }
   
   void _nextPage() {
     if (currentPage < 2) {
+      // Check if can proceed
+      if (currentPage == 0 && selectedDate == null) {
+        _selectDate();
+        return;
+      }
+      if (currentPage == 1 && selectedTime == null) {
+        _selectTime();
+        return;
+      }
+      
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
-      setState(() {
-        currentPage++;
-      });
     }
   }
   
@@ -185,9 +211,8 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
-      setState(() {
-        currentPage--;
-      });
+    } else {
+      Navigator.pop(context);
     }
   }
   
@@ -208,7 +233,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                          onPressed: currentPage > 0 ? _previousPage : () => Navigator.pop(context),
+                          onPressed: _previousPage,
                         ),
                         Expanded(
                           child: Text(
@@ -220,7 +245,13 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const SizedBox(width: 48),
+                        IconButton(
+                          icon: Icon(
+                            Icons.arrow_forward_ios, 
+                            color: currentPage < 2 ? Colors.white : Colors.white24,
+                          ),
+                          onPressed: currentPage < 2 ? _nextPage : null,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -252,7 +283,20 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
               Expanded(
                 child: PageView(
                   controller: _pageController,
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics: const BouncingScrollPhysics(), // Enable swipe
+                  onPageChanged: (page) {
+                    setState(() {
+                      currentPage = page;
+                    });
+                    
+                    // Open time picker when swiping to time page
+                    if (page == 1 && selectedTime == null && !_isTimePickerOpened && selectedDate != null) {
+                      _isTimePickerOpened = true;
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _selectTime();
+                      });
+                    }
+                  },
                   children: [
                     _buildDatePage(l10n),
                     _buildTimePage(l10n),
@@ -351,10 +395,11 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
             ),
           ),
           const SizedBox(height: 48),
-          InkWell(
-            onTap: _selectTime,
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
+          if (selectedTime != null) // Only show if time is selected
+            InkWell(
+              onTap: _selectTime,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
