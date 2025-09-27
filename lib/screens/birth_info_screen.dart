@@ -29,6 +29,17 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
   final PageController _pageController = PageController();
   int currentPage = 0;
   
+  @override
+  void initState() {
+    super.initState();
+    // Open date picker automatically when reaching the date page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (currentPage == 0 && selectedDate == null) {
+        _selectDate();
+      }
+    });
+  }
+  
   final TextEditingController _cityController = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
   Timer? _debounce;
@@ -52,9 +63,9 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
       final response = await http.get(
         Uri.parse('https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=5'),
         headers: {'User-Agent': 'AIAstrologApp/1.0'},
-      );
+      ).timeout(const Duration(seconds: 10)); // Add timeout
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && mounted) { // Check if widget is still mounted
         final List<dynamic> data = json.decode(response.body);
         setState(() {
           _searchResults = data.map((item) => {
@@ -66,9 +77,12 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
         });
       }
     } catch (e) {
-      setState(() {
-        _isSearching = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+          _searchResults = []; // Clear results on error
+        });
+      }
       print('Error searching location: $e');
     }
   }
@@ -85,6 +99,7 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
     _cityController.dispose();
     _pageController.dispose();
     _debounce?.cancel();
+    _searchResults.clear(); // Clear the list to free memory
     super.dispose();
   }
 
@@ -98,10 +113,10 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Colors.purple,
+            colorScheme: ColorScheme.dark(
+              primary: ColorSchemes.colors.primaryAccent,
               onPrimary: Colors.white,
-              surface: Color(0xFF2D1B4E),
+              surface: const Color(0xFF2D1B4E),
               onSurface: Colors.white,
             ),
           ),
@@ -115,6 +130,12 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
         selectedDate = picked;
       });
       _nextPage();
+      // Automatically open time picker after date is selected
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted && currentPage == 1 && selectedTime == null) {
+          _selectTime();
+        }
+      });
     }
   }
   
@@ -126,10 +147,10 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Colors.purple,
+            colorScheme: ColorScheme.dark(
+              primary: ColorSchemes.colors.primaryAccent,
               onPrimary: Colors.white,
-              surface: Color(0xFF2D1B4E),
+              surface: const Color(0xFF2D1B4E),
               onSurface: Colors.white,
             ),
           ),
