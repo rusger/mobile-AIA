@@ -11,6 +11,8 @@ import '../core/theme/color_schemes.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../services/astrolog_service.dart';
+import 'chart_result_screen.dart';
 
 class BirthInfoScreen extends StatefulWidget {
   const BirthInfoScreen({super.key});
@@ -574,21 +576,69 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
           
           if (selectedDate != null && selectedTime != null && cityValue != null && cityValue!.isNotEmpty)
             AnimatedButton(
-              onPressed: () {
+              onPressed: () async {
                 HapticFeedback.mediumImpact();
-                // TODO: Save the data and navigate to next screen
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Date: ${DateFormat('MMM d, yyyy').format(selectedDate!)}\n'
-                      'Time: ${selectedTime!.format(context)}\n'
-                      'Location: ${cityValue!.split(',')[0]}\n'
-                      'Coordinates: ${selectedLatitude?.toStringAsFixed(4)}, ${selectedLongitude?.toStringAsFixed(4)}',
-                    ),
-                    backgroundColor: ColorSchemes.colors.tertiaryAccent,
-                    duration: const Duration(seconds: 3),
-                  ),
+                
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    );
+                  },
                 );
+                
+                try {
+                  // Calculate timezone from longitude (rough estimate)
+                  final timezone = (selectedLongitude! / 15).round().toDouble();
+                  
+                  // Format time as HH:MM
+                  final timeString = '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
+                  
+                  final result = await AstrologService.calculateChart(
+                    date: selectedDate!,
+                    time: timeString,
+                    timezone: timezone,
+                    longitude: selectedLongitude!,
+                    latitude: selectedLatitude!,
+                  );
+                  
+                  if (mounted) {
+                    Navigator.pop(context); // Hide loading
+                    
+                    if (result != null) {
+                      // Navigate to results screen with the chart data
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChartResultScreen(chartData: result),
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    Navigator.pop(context); // Hide loading
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                }
               },
               text: l10n.submit,
             ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
