@@ -25,7 +25,11 @@ class AstrologService {
   }
   
   static String _generateSignature(Map<String, dynamic> data) {
-    final jsonStr = json.encode(data);
+    // Sort keys to ensure consistent ordering
+    final sortedData = Map.fromEntries(
+      data.entries.toList()..sort((a, b) => a.key.compareTo(b.key))
+    );
+    final jsonStr = json.encode(sortedData);
     final bytes = utf8.encode(jsonStr);
     final key = utf8.encode(_secretKey);
     final hmacSha256 = Hmac(sha256, key);
