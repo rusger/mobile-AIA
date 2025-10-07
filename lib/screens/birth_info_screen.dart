@@ -601,7 +601,10 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                 
                 try {
                   // Calculate timezone from longitude (rough estimate)
-                  final timezone = (selectedLongitude! / 15).round().toDouble();
+                  // Calculate timezone from longitude - use floor for western hemisphere
+                  final timezone = selectedLongitude! > 0 
+                      ? (selectedLongitude! / 15).round().toDouble()
+                      : (selectedLongitude! / 15).floor().toDouble();
                   
                   // Format time as HH:MM
                   final timeString = '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
@@ -618,11 +621,21 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                     Navigator.pop(context); // Hide loading
                     
                     if (result != null) {
+                      // Parse the response to get both command and data
+                      final responseData = json.decode(result);
+                      final command = responseData['command'] ?? '';
+                      final chartData = responseData['data'] ?? '';
+                      
+                      // Combine them with a separator
+                      final fullData = command.isNotEmpty 
+                          ? 'COMMAND:\n$command\n\n---CHART DATA---\n$chartData'
+                          : chartData;
+                      
                       // Navigate to results screen with the chart data
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ChartResultScreen(chartData: result),
+                          builder: (context) => ChartResultScreen(chartData: fullData),
                         ),
                       );
                     }

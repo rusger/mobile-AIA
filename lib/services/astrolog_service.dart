@@ -48,6 +48,14 @@ class AstrologService {
       final deviceId = await _getDeviceId();
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       
+      // Debug print input parameters
+      print('=== ASTROLOG API CALL DEBUG ===');
+      print('Input Date: ${date.toString()}');
+      print('Input Time: $time');
+      print('Input Timezone: $timezone');
+      print('Input Longitude: $longitude');
+      print('Input Latitude: $latitude');
+      
       // Create data map for signature
       final data = {
         'date': '${date.month} ${date.day} ${date.year}',
@@ -58,6 +66,14 @@ class AstrologService {
         'device_id': deviceId,
         'timestamp': timestamp,
       };
+      
+      // Debug print formatted data
+      print('Formatted Date for API: ${data['date']}');
+      print('Formatted Timezone: ${data['timezone']}');
+      print('Formatted Longitude: ${data['longitude']}');
+      print('Formatted Latitude: ${data['latitude']}');
+      print('Device ID: $deviceId');
+      print('Timestamp: $timestamp');
       
       // Generate signature
       final signature = _generateSignature(data);
@@ -81,7 +97,7 @@ class AstrologService {
       if (response.statusCode == 200) {
         final result = json.decode(response.body);
         if (result['success'] == true) {
-          return result['data'];
+          return response.body;
         } else {
           throw Exception(result['error'] ?? 'Unknown error');
         }
