@@ -68,7 +68,26 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
   double? selectedLatitude;
   double? selectedLongitude;
 
-  Future<void> _searchLocation(String query) async {
+  Future<double?> _getTimezoneForCoordinates(double lat, double lon) async {
+  try {
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final response = await http.get(
+      Uri.parse('https://timeapi.io/api/TimeZone/coordinate?latitude=$lat&longitude=$lon'),
+    ).timeout(const Duration(seconds: 5));
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final offsetString = data['currentUtcOffset']['seconds'];
+      return (offsetString / 3600).toDouble(); // Convert seconds to hours
+    }
+  } catch (e) {
+    print('Timezone lookup failed: $e');
+  }
+  // Fallback to longitude-based calculation
+  return (lon / 15).round().toDouble();
+}
+
+Future<void> _searchLocation(String query) async {
     if (query.length < 3) {
       setState(() {
         _searchResults = [];
@@ -600,11 +619,11 @@ class _BirthInfoScreenState extends State<BirthInfoScreen> {
                 );
                 
                 try {
-                  // Calculate timezone from longitude (rough estimate)
-                  // Calculate timezone from longitude - use floor for western hemisphere
-                  final timezone = selectedLongitude! > 0 
-                      ? (selectedLongitude! / 15).round().toDouble()
-                      : (selectedLongitude! / 15).floor().toDouble();
+                  // Get actual timezone for the coordinates
+                  final timezone = await _getTimezoneForCoordinates(
+                    selectedLatitude!,
+                    selectedLongitude!,
+                  ) ?? (selectedLongitude! / 15).round().toDouble();
                   
                   // Format time as HH:MM
                   final timeString = '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
